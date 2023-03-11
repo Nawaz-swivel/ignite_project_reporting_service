@@ -1,0 +1,37 @@
+## servlet configuration
+server:
+  port: ${PORT:5000}
+
+## application configuration
+spring:
+  application:
+    name: ${APPLICATION_NAME:ignite-reporting-service}
+  datasource:
+    url: jdbc:mysql://ignite-db.cf3zfdqdzdpj.us-east-1.rds.amazonaws.com:3306/ignite_reporting_db?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:nawaz_admin}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: always
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: update
+
+## eureka server configuration
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://ignitediscovery-env.eba-77absjbd.us-east-1.elasticbeanstalk.com/eureka}
+
+## Registration-Microservice
+registration:
+  baseUrl: ${REGISTRATION_BASE_URL:http://igniteregistration-env-1.eba-rggue2hh.us-east-1.elasticbeanstalk.com}
+  tuitionListUrl: /api/v1/tuition/get/all
+  studentInfoUrl: /api/v1/student/get/{studentId}
+
+## Payment-Microservice
+payment:
+  baseUrl: ${PAYMENT_BASE_URL:http://ignitepayment-env.eba-ng4vfm36.us-east-1.elasticbeanstalk.com}
+  paidStudentsInfoUrl: /api/v1/payment/get/all/{tuitionId}/{month}
