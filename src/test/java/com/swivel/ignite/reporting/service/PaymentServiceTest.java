@@ -56,10 +56,12 @@ class PaymentServiceTest {
 
     @Test
     void Should_ThrowPaymentServiceHttpClientErrorException_When_GettingPaidStudentsIsFailed() {
+        String month = Month.MAY.getMonthString();
+
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class),
                 anyMap())).thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
         PaymentServiceHttpClientErrorException exception = assertThrows(PaymentServiceHttpClientErrorException.class,
-                () -> paymentService.getPaidStudents(TUITION_ID, Month.MAY.getMonthString()));
+                () -> paymentService.getPaidStudents(TUITION_ID, month));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value() + " Failed to get paid students info",
                 exception.getMessage());
     }
