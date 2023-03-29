@@ -37,14 +37,16 @@ class ReportServiceTest {
     @Mock
     private ReportRepository reportRepository;
     @Mock
-    private RegistrationService registrationService;
+    private StudentService studentService;
+    @Mock
+    private TuitionService tuitionService;
     @Mock
     private PaymentService paymentService;
 
     @BeforeEach
     void setUp() {
         initMocks(this);
-        reportService = new ReportService(reportRepository, registrationService, paymentService);
+        reportService = new ReportService(reportRepository, studentService, tuitionService, paymentService);
     }
 
     /**
@@ -53,7 +55,7 @@ class ReportServiceTest {
     @Test
     void Should_UpdateReport() throws IOException {
         doNothing().when(reportRepository).deleteAll();
-        when(registrationService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
+        when(tuitionService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
         when(paymentService.getPaidStudents(anyString(), anyString())).thenReturn(getSampleStudentsIdListResponseDto());
         reportService.updateReport();
         verify(reportRepository, times(48)).save(any(Report.class));
@@ -62,7 +64,7 @@ class ReportServiceTest {
     @Test
     void Should_ThrowReportingServiceException_When_UpdatingReportForErrorCreatingPaidReportList() throws IOException {
         doNothing().when(reportRepository).deleteAll();
-        when(registrationService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
+        when(tuitionService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
         doThrow(new DataAccessException(ERROR) {
         }).when(reportRepository).save(any(Report.class));
         ReportingServiceException exception = assertThrows(ReportingServiceException.class, () ->
@@ -74,7 +76,7 @@ class ReportServiceTest {
     void Should_ThrowReportingServiceException_When_UpdatingReportForErrorCreatingUnPaidReportList() throws IOException {
         Report r = new Report();
         doNothing().when(reportRepository).deleteAll();
-        when(registrationService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
+        when(tuitionService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
         when(reportRepository.save(any(Report.class))).thenReturn(r, r, r, r, r, r, r, r, r, r, r, r)
                 .thenThrow(new DataAccessException(ERROR) {
                 });
@@ -87,7 +89,7 @@ class ReportServiceTest {
     void Should_ThrowReportingServiceException_When_UpdatingReportForFailedToUpdatePaidReportList() throws IOException {
         Report r = new Report();
         doNothing().when(reportRepository).deleteAll();
-        when(registrationService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
+        when(tuitionService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
         when(paymentService.getPaidStudents(anyString(), anyString())).thenReturn(getSampleStudentsIdListResponseDto());
         when(reportRepository.save(any(Report.class))).thenReturn(r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r,
                 r, r, r, r, r, r).thenThrow(new DataAccessException(ERROR) {
@@ -101,7 +103,7 @@ class ReportServiceTest {
     void Should_ThrowReportingServiceException_When_UpdatingReportForFailedToUpdateUnPaidReportList() throws IOException {
         Report r = new Report();
         doNothing().when(reportRepository).deleteAll();
-        when(registrationService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
+        when(tuitionService.getTuitionList()).thenReturn(getSampleTuitionListResponseDto());
         when(paymentService.getPaidStudents(anyString(), anyString())).thenReturn(getSampleStudentsIdListResponseDto());
         when(reportRepository.save(any(Report.class))).thenReturn(r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r,
                 r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r).thenThrow(new DataAccessException(ERROR) {

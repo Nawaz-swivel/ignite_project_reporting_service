@@ -26,14 +26,16 @@ public class ReportService {
     private static final String CRON = "* * * * *";
 
     private final ReportRepository reportRepository;
-    private final RegistrationService registrationService;
+    private final StudentService studentService;
+    private final TuitionService tuitionService;
     private final PaymentService paymentService;
 
     @Autowired
-    public ReportService(ReportRepository reportRepository, RegistrationService registrationService,
+    public ReportService(ReportRepository reportRepository, StudentService studentService, TuitionService tuitionService,
                          PaymentService paymentService) {
         this.reportRepository = reportRepository;
-        this.registrationService = registrationService;
+        this.studentService = studentService;
+        this.tuitionService = tuitionService;
         this.paymentService = paymentService;
     }
 
@@ -44,19 +46,19 @@ public class ReportService {
      * @throws IOException
      */
     @Scheduled(cron = CRON)
-    public void updateReport() throws IOException {
+    public void updateReport(String token) throws IOException {
         log.debug("Report data update service started..");
         try {
             reportRepository.deleteAll();
-            List<TuitionResponseDto> tuitionList = registrationService.getTuitionList().getTuitionList();
+            List<TuitionResponseDto> tuitionList = tuitionService.getTuitionList(token).getTuitionList();
             for (TuitionResponseDto t : tuitionList) {
                 String tuitionId = t.getTuitionId();
                 List<Report> paidReportList = createPaidReportList(tuitionId);
                 List<Report> unpaidReportList = createUnpaidReportList(tuitionId);
 
                 for (String studentId : t.getStudentIds()) {
-                    updatePaidReportList(tuitionId, studentId, paidReportList);
-                    updateUnpaidReportList(tuitionId, studentId, unpaidReportList);
+                    updatePaidReportList(tuitionId, studentId, paidReportList, token);
+                    updateUnpaidReportList(tuitionId, studentId, unpaidReportList, token);
                 }
             }
         } catch (DataAccessException e) {
@@ -130,9 +132,9 @@ public class ReportService {
      * @param studentId student id
      * @return tuition joined month
      */
-    private int studentTuitionJoinedMonth(String studentId) {
+    private int studentTuitionJoinedMonth(String studentId, String token) {
         try {
-            Date tuitionJoinedOn = registrationService.getStudentInfo(studentId).getTuitionJoinedOn();
+            Date tuitionJoinedOn = studentService.getStudentInfo(studentId, token).getTuitionJoinedOn();
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(tuitionJoinedOn);
             return calendar.get(Calendar.MONTH);
@@ -149,11 +151,11 @@ public class ReportService {
      * @param studentId      student id
      * @param paidReportList paid report list
      */
-    private void updatePaidReportList(String tuitionId, String studentId, List<Report> paidReportList) {
+    private void updatePaidReportList(String tuitionId, String studentId, List<Report> paidReportList, String token) {
         try {
             for (Report paidReport : paidReportList) {
                 String month = paidReport.getMonth();
-                List<String> paidStudentIdsForTheMonth = paymentService.getPaidStudents(tuitionId, month)
+                List<String> paidStudentIdsForTheMonth = paymentService.getPaidStudents(tuitionId, month, token)
                         .getStudentIds();
                 if (paidStudentIdsForTheMonth.contains(studentId)) {
                     paidReport.addStudentId(studentId);
@@ -172,18 +174,18 @@ public class ReportService {
      * @param studentId        student id
      * @param unpaidReportList unpaid report list
      */
-    private void updateUnpaidReportList(String tuitionId, String studentId, List<Report> unpaidReportList) {
+    private void updateUnpaidReportList(String tuitionId, String studentId, List<Report> unpaidReportList, String token) {
         try {
             for (Report unpaidReport : unpaidReportList) {
                 String month = unpaidReport.getMonth();
-                List<String> paidStudentIdsForTheMonth = paymentService.getPaidStudents(tuitionId, month)
+                List<String> paidStudentIdsForTheMonth = paymentService.getPaidStudents(tuitionId, month, token)
                         .getStudentIds();
                 if (paidStudentIdsForTheMonth.contains(studentId)) {
                     unpaidReport.removeStudentId(studentId);
                     reportRepository.save(unpaidReport);
                 }
                 if (!paidStudentIdsForTheMonth.contains(studentId)
-                        && studentTuitionJoinedMonth(studentId) <= Month.getMonthInt(month)) {
+                        && studentTuitionJoinedMonth(studentId, token) <= Month.getMonthInt(month)) {
                     unpaidReport.addStudentId(studentId);
                     reportRepository.save(unpaidReport);
                 }

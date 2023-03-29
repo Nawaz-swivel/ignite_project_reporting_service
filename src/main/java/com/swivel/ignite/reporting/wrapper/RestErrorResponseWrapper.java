@@ -1,16 +1,16 @@
 package com.swivel.ignite.reporting.wrapper;
 
-import com.swivel.ignite.reporting.dto.response.ResponseDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.swivel.ignite.reporting.enums.ResponseStatusType;
 import lombok.Getter;
 
 /**
- * Error response wrapper
+ * Rest Error response wrapper
  */
 @Getter
-public class ErrorResponseWrapper extends ResponseWrapper {
+public class RestErrorResponseWrapper extends ResponseWrapper {
 
-    private final ResponseDto data;
+    private final JsonNode data;
     private final int errorCode;
 
     /**
@@ -20,10 +20,15 @@ public class ErrorResponseWrapper extends ResponseWrapper {
      * @param displayMessage display message
      * @param errorCode      error code
      */
-    public ErrorResponseWrapper(ResponseStatusType status, String message, ResponseDto data, String displayMessage,
-                                int errorCode) {
+    public RestErrorResponseWrapper(ResponseStatusType status, String message, JsonNode data, String displayMessage,
+                                    int errorCode) {
         super(status, message, displayMessage);
         this.data = data;
         this.errorCode = errorCode;
+    }
+
+    @Override
+    public String toLogJson() {
+        return toJson();
     }
 }

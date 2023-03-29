@@ -8,15 +8,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.io.IOException;
 
 /**
- * Registration Microservice client error exception
+ * Tuition Microservice client error exception
  */
-public class RegistrationServiceHttpClientErrorException extends HttpClientErrorException {
+public class TuitionServiceHttpClientErrorException extends HttpClientErrorException {
 
     public final transient JsonNode responseBody;
     public final Exception exception;
 
-    public RegistrationServiceHttpClientErrorException(HttpStatus statusCode, String statusText, String responseBody,
-                                                       Exception e) throws IOException {
+    public TuitionServiceHttpClientErrorException(HttpStatus statusCode, String statusText, String responseBody,
+                                                  Exception e) throws IOException {
         super(statusCode, statusText);
         this.responseBody = getJsonObject(responseBody);
         this.exception = e;

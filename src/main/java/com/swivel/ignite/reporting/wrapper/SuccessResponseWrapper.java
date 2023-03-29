@@ -9,6 +9,8 @@ import lombok.Getter;
  */
 @Getter
 public class SuccessResponseWrapper extends ResponseWrapper {
+
+    private final ResponseDto data;
     private final int statusCode;
 
     /**
@@ -20,7 +22,8 @@ public class SuccessResponseWrapper extends ResponseWrapper {
      */
     public SuccessResponseWrapper(ResponseStatusType status, String message, ResponseDto data, String displayMessage,
                                   int statusCode) {
-        super(status, message, data, displayMessage);
+        super(status, message, displayMessage);
+        this.data = data;
         this.statusCode = statusCode;
     }
 }

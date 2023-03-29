@@ -7,6 +7,8 @@ import com.swivel.ignite.reporting.enums.Month;
 import com.swivel.ignite.reporting.enums.SuccessResponseStatusType;
 import com.swivel.ignite.reporting.exception.ReportNotFoundException;
 import com.swivel.ignite.reporting.exception.ReportingServiceException;
+import com.swivel.ignite.reporting.exception.StudentServiceHttpClientErrorException;
+import com.swivel.ignite.reporting.exception.TuitionServiceHttpClientErrorException;
 import com.swivel.ignite.reporting.service.ReportService;
 import com.swivel.ignite.reporting.wrapper.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
@@ -44,13 +47,15 @@ public class ReportController extends Controller {
      */
     @GetMapping(path = "/get/{tuitionId}/{month}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ResponseWrapper> getReportByTuitionIdMonth(@PathVariable(name = "tuitionId") String tuitionId,
-                                                                     @PathVariable(name = "month") String month) {
+                                                                     @PathVariable(name = "month") String month,
+                                                                     HttpServletRequest request) {
+        String token = request.getHeader(AUTH_HEADER);
         try {
             if (!Month.isMonthValid(month)) {
                 log.error("Month is invalid for getting a report by tuitionId and month");
                 return getBadRequestResponse(ErrorResponseStatusType.INVALID_MONTH);
             }
-            reportService.updateReport();
+            reportService.updateReport(token);
             Report paidReport = reportService.getByTuitionIdMonthPaid(tuitionId, month, true);
             Report unpaidReport = reportService.getByTuitionIdMonthPaid(tuitionId, month, false);
             ReportResponseDto responseDto = new ReportResponseDto(paidReport, unpaidReport);
@@ -59,6 +64,14 @@ public class ReportController extends Controller {
         } catch (ReportNotFoundException e) {
             log.error("Report not when getting a report by tuitionId and month", e);
             return getBadRequestResponse(ErrorResponseStatusType.REPORT_NOT_FOUND);
+        } catch (StudentServiceHttpClientErrorException e) {
+            log.error("Failed to get student info from Student Micro Service.", e);
+            return getInternalServerErrorResponse(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR,
+                    e.responseBody);
+        } catch (TuitionServiceHttpClientErrorException e) {
+            log.error("Failed to get tuition list from Tuition Micro Service.", e);
+            return getInternalServerErrorResponse(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR,
+                    e.responseBody);
         } catch (ReportingServiceException | IOException e) {
             log.error("Getting report by tuitionId and month was failed for tuitionId: {}, and month: {}", tuitionId,
                     month, e);
