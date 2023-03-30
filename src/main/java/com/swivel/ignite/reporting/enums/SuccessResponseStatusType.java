@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 public enum SuccessResponseStatusType {
 
-    READ_REPORT(2000, "Successfully read the report");
+    READ_REPORT(200, "Successfully read the report");
 
     private final int code;
     private final String message;
