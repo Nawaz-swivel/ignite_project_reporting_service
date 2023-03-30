@@ -29,7 +29,8 @@ public class SwaggerConfig {
 
         aParameters.clear();
 
-        aParameterBuilder.name("Authorization").modelRef(new ModelRef("string")).parameterType("header").required(false).build();
+        aParameterBuilder.name("Authorization").modelRef(new ModelRef("string")).parameterType("header")
+                .required(false).build();
         aParameters.add(aParameterBuilder.build());
 
         return new Docket(DocumentationType.SWAGGER_2)
