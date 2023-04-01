@@ -22,6 +22,12 @@ public class TuitionServiceHttpClientErrorException extends HttpClientErrorExcep
         this.exception = e;
     }
 
+    public TuitionServiceHttpClientErrorException(String message) {
+        super(HttpStatus.INTERNAL_SERVER_ERROR, message);
+        this.responseBody = null;
+        this.exception = null;
+    }
+
     private JsonNode getJsonObject(String jsonString) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readTree(jsonString);
