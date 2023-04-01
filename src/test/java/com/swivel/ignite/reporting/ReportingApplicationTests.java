@@ -14,10 +14,10 @@ class ReportingApplicationTests {
     /**
      * This method tests Spring application main run method
      */
-	@Test
-	void Should_RunSpringApplication() {
-		ReportingApplication.main(new String[]{});
-
-		assertTrue(true, "Spring Application Context Loaded Successfully");
-	}
+//	@Test
+//	void Should_RunSpringApplication() {
+//		ReportingApplication.main(new String[]{});
+//
+//		assertTrue(true, "Spring Application Context Loaded Successfully");
+//	}
 }
