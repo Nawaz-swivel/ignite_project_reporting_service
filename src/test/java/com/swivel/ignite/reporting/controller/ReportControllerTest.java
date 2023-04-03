@@ -6,6 +6,8 @@ import com.swivel.ignite.reporting.enums.Month;
 import com.swivel.ignite.reporting.enums.SuccessResponseStatusType;
 import com.swivel.ignite.reporting.exception.ReportNotFoundException;
 import com.swivel.ignite.reporting.exception.ReportingServiceException;
+import com.swivel.ignite.reporting.exception.StudentServiceHttpClientErrorException;
+import com.swivel.ignite.reporting.exception.TuitionServiceHttpClientErrorException;
 import com.swivel.ignite.reporting.service.ReportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class ReportControllerTest {
 
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String TOKEN = "Bearer 123456789";
     private static final String TUITION_ID = "tid-123456789";
     private static final Month MONTH_JANUARY = Month.JANUARY;
     private static final String MONTH_INVALID = "INVALID_MONTH";
@@ -60,6 +63,7 @@ class ReportControllerTest {
         String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
                 .replace("{month}", MONTH_JANUARY.getMonthString());
         mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -75,6 +79,7 @@ class ReportControllerTest {
         String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
                 .replace("{month}", MONTH_INVALID);
         mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -93,6 +98,7 @@ class ReportControllerTest {
         String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
                 .replace("{month}", MONTH_JANUARY.getMonthString());
         mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -102,43 +108,45 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$.displayMessage").value(ERROR_MESSAGE));
     }
 
-//    @Test
-//    void Should_ReturnStudentInternalServerError_When_GettingReportByTuitionIdMonthForFailedToGetStudentInfoFromStudentMicroservice()
-//            throws Exception {
-//        doThrow(new StudentServiceHttpClientErrorException(ERROR)).when(reportService).updateReport(anyString());
-//
-//        String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
-//                .replace("{month}", MONTH_JANUARY.getMonthString());
-//        mockMvc.perform(MockMvcRequestBuilders.get(uri)
-//                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isInternalServerError())
-//                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-//                .andExpect(jsonPath("$.status").value(ERROR_STATUS))
-//                .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR
-//                        .getMessage()))
-//                .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR
-//                        .getCode()))
-//                .andExpect(jsonPath("$.displayMessage").value(ERROR_MESSAGE));
-//    }
-//
-//    @Test
-//    void Should_ReturnTuitionInternalServerError_When_GettingReportByTuitionIdMonthForFailedToGetTuitionListFromTuitionMicroservice()
-//            throws Exception {
-//        doThrow(new TuitionServiceHttpClientErrorException(ERROR)).when(reportService).updateReport(anyString());
-//
-//        String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
-//                .replace("{month}", MONTH_JANUARY.getMonthString());
-//        mockMvc.perform(MockMvcRequestBuilders.get(uri)
-//                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isInternalServerError())
-//                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-//                .andExpect(jsonPath("$.status").value(ERROR_STATUS))
-//                .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR
-//                        .getMessage()))
-//                .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR
-//                        .getCode()))
-//                .andExpect(jsonPath("$.displayMessage").value(ERROR_MESSAGE));
-//    }
+    @Test
+    void Should_ReturnStudentInternalServerError_When_GettingReportByTuitionIdMonthForFailedToGetStudentInfoFromStudentMicroservice()
+            throws Exception {
+        doThrow(new StudentServiceHttpClientErrorException(ERROR)).when(reportService).updateReport(anyString());
+
+        String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
+                .replace("{month}", MONTH_JANUARY.getMonthString());
+        mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.status").value(ERROR_STATUS))
+                .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR
+                        .getMessage()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR
+                        .getCode()))
+                .andExpect(jsonPath("$.displayMessage").value(ERROR_MESSAGE));
+    }
+
+    @Test
+    void Should_ReturnTuitionInternalServerError_When_GettingReportByTuitionIdMonthForFailedToGetTuitionListFromTuitionMicroservice()
+            throws Exception {
+        doThrow(new TuitionServiceHttpClientErrorException(ERROR)).when(reportService).updateReport(anyString());
+
+        String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
+                .replace("{month}", MONTH_JANUARY.getMonthString());
+        mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.status").value(ERROR_STATUS))
+                .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR
+                        .getMessage()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR
+                        .getCode()))
+                .andExpect(jsonPath("$.displayMessage").value(ERROR_MESSAGE));
+    }
 
     @Test
     void Should_ReturnInternalServerError_When_GettingReportByTuitionIdMonthIsFailed() throws Exception {
@@ -149,6 +157,7 @@ class ReportControllerTest {
         String uri = GET_REPORT_BY_TUITION_ID_MONTH_URI.replace("{tuitionId}", TUITION_ID)
                 .replace("{month}", MONTH_JANUARY.getMonthString());
         mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                        .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))

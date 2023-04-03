@@ -1,5 +1,6 @@
 package com.swivel.ignite.reporting.service;
 
+import com.swivel.ignite.reporting.dto.response.StudentResponseDto;
 import com.swivel.ignite.reporting.dto.response.StudentsIdListResponseDto;
 import com.swivel.ignite.reporting.dto.response.TuitionListResponseDto;
 import com.swivel.ignite.reporting.dto.response.TuitionResponseDto;
@@ -15,6 +16,7 @@ import org.springframework.dao.DataAccessException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +32,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 class ReportServiceTest {
 
     private static final String STUDENT_ID = "sid-123456789";
+    private static final String STUDENT_1_ID = "sid-987654321";
     private static final String TUITION_ID = "tid-123456789";
     private static final String REPORT_ID = "rid-123456789";
     private static final String TOKEN = "Bearer 123456789";
@@ -58,9 +61,10 @@ class ReportServiceTest {
         doNothing().when(reportRepository).deleteAll();
         when(tuitionService.getTuitionList(anyString())).thenReturn(getSampleTuitionListResponseDto());
         when(paymentService.getPaidStudents(anyString(), anyString(), anyString()))
-                .thenReturn(getSampleStudentsIdListResponseDto());
+                .thenReturn(getSampleStudents1IdListResponseDto());
+        when(studentService.getStudentInfo(anyString(), anyString())).thenReturn(getSampleStudentResponseDto());
         reportService.updateReport(TOKEN);
-        verify(reportRepository, times(48)).save(any(Report.class));
+        verify(reportRepository, times(33)).save(any(Report.class));
     }
 
     @Test
@@ -100,6 +104,20 @@ class ReportServiceTest {
         ReportingServiceException exception = assertThrows(ReportingServiceException.class, () ->
                 reportService.updateReport(TOKEN));
         assertEquals("Failed to update paid report list", exception.getMessage());
+    }
+
+    @Test
+    void Should_ThrowReportingServiceException_When_UpdatingReportForFailedToGetTuitionJoinedMonthOfStudent()
+            throws IOException {
+        doNothing().when(reportRepository).deleteAll();
+        when(tuitionService.getTuitionList(anyString())).thenReturn(getSampleTuitionListResponseDto());
+        when(paymentService.getPaidStudents(anyString(), anyString(), anyString()))
+                .thenReturn(getSampleStudents1IdListResponseDto());
+        when(studentService.getStudentInfo(anyString(), anyString())).thenThrow(new IOException());
+        ReportingServiceException exception = assertThrows(ReportingServiceException.class, () ->
+                reportService.updateReport(TOKEN));
+        assertEquals("Failed to get tuition joined month of student for id: " + STUDENT_ID,
+                exception.getMessage());
     }
 
     @Test
@@ -159,7 +177,7 @@ class ReportServiceTest {
     }
 
     /**
-     * This class returns a sample TuitionListResponseDto
+     * This method returns a sample TuitionListResponseDto
      *
      * @return TuitionListResponseDto
      */
@@ -170,7 +188,7 @@ class ReportServiceTest {
     }
 
     /**
-     * This class returns a sample TuitionResponseDto
+     * This method returns a sample TuitionResponseDto
      *
      * @return TuitionResponseDto
      */
@@ -182,13 +200,24 @@ class ReportServiceTest {
     }
 
     /**
-     * This class returns a sample StudentsIdListResponseDto
+     * This method returns a sample StudentsIdListResponseDto
      *
      * @return StudentsIdListResponseDto
      */
     private StudentsIdListResponseDto getSampleStudentsIdListResponseDto() {
         List<String> studentIds = new ArrayList<>();
         studentIds.add(STUDENT_ID);
+        return new StudentsIdListResponseDto(studentIds);
+    }
+
+    /**
+     * This method returns a sample StudentsIdListResponseDto
+     *
+     * @return StudentsIdListResponseDto
+     */
+    private StudentsIdListResponseDto getSampleStudents1IdListResponseDto() {
+        List<String> studentIds = new ArrayList<>();
+        studentIds.add(STUDENT_1_ID);
         return new StudentsIdListResponseDto(studentIds);
     }
 
@@ -201,5 +230,16 @@ class ReportServiceTest {
         Report report = new Report();
         report.setId(REPORT_ID);
         return report;
+    }
+
+    /**
+     * This method returns a sample StudentResponseDto
+     *
+     * @return StudentResponseDto
+     */
+    private StudentResponseDto getSampleStudentResponseDto() {
+        StudentResponseDto responseDto = new StudentResponseDto();
+        responseDto.setTuitionJoinedOn(new Date(1680497462842L));
+        return responseDto;
     }
 }
