@@ -4,10 +4,7 @@ import com.swivel.ignite.reporting.entity.Report;
 import com.swivel.ignite.reporting.enums.ErrorResponseStatusType;
 import com.swivel.ignite.reporting.enums.Month;
 import com.swivel.ignite.reporting.enums.SuccessResponseStatusType;
-import com.swivel.ignite.reporting.exception.ReportNotFoundException;
-import com.swivel.ignite.reporting.exception.ReportingServiceException;
-import com.swivel.ignite.reporting.exception.StudentServiceHttpClientErrorException;
-import com.swivel.ignite.reporting.exception.TuitionServiceHttpClientErrorException;
+import com.swivel.ignite.reporting.exception.*;
 import com.swivel.ignite.reporting.service.ReportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +44,9 @@ class ReportControllerTest {
     void setUp() {
         initMocks(this);
         ReportController reportController = new ReportController(reportService);
-        mockMvc = MockMvcBuilders.standaloneSetup(reportController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(reportController)
+                .setControllerAdvice(new CustomizedExceptionHandling())
+                .build();
     }
 
     /**
@@ -66,7 +65,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(SUCCESS_STATUS))
                 .andExpect(jsonPath("$.message").value(SuccessResponseStatusType.READ_REPORT.getMessage()))
                 .andExpect(jsonPath("$.statusCode").value(SuccessResponseStatusType.READ_REPORT.getCode()))
@@ -82,7 +81,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(ERROR_STATUS))
                 .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.INVALID_MONTH.getMessage()))
                 .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.INVALID_MONTH.getCode()))
@@ -101,7 +100,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(ERROR_STATUS))
                 .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.REPORT_NOT_FOUND.getMessage()))
                 .andExpect(jsonPath("$.errorCode").value(ErrorResponseStatusType.REPORT_NOT_FOUND.getCode()))
@@ -119,7 +118,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(ERROR_STATUS))
                 .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.STUDENT_INTERNAL_SERVER_ERROR
                         .getMessage()))
@@ -139,7 +138,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(ERROR_STATUS))
                 .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.TUITION_INTERNAL_SERVER_ERROR
                         .getMessage()))
@@ -160,7 +159,7 @@ class ReportControllerTest {
                         .header(AUTH_HEADER, TOKEN)
                         .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(ERROR_STATUS))
                 .andExpect(jsonPath("$.message").value(ErrorResponseStatusType.INTERNAL_SERVER_ERROR
                         .getMessage()))
